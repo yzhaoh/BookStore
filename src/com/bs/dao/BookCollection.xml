@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bookCollection">
+	<typeAlias alias="BookCollection" type="com.bs.bean.BookCollection"/>
+	<typeAlias alias="ShoppingCart" type="com.bs.bean.ShoppingCart" />
+	<typeAlias alias="BookCategory" type="com.bs.bean.BookCategory" />
+	<typeAlias alias="Book" type="com.bs.bean.Book" />
+	<typeAlias alias="DeliveryAddress" type="com.bs.bean.DeliveryAddress" />
+	<typeAlias alias="User" type="com.bs.bean.User" />
+
+	<resultMap class="BookCollection" id="bookCollectionResult">
+		<result property="userId" column="userid" />
+		<result property="bookId" column="bookid" />
+		<result property="user" column="userid" select="bookCollection.selectUserByUserId" />
+		<result property="book" column="bookid" select="bookCollection.selectBookByBookId" />
+	</resultMap>
+	
+	<select id="selectUserByUserId" parameterClass="int" resultClass="User">
+		select * from user where userid=#userid#
+	</select>
+	<select id="selectBookByBookId" parameterClass="int" resultClass="Book">
+		select * from book where bookid=#bookid#
+	</select>
+	<select id="selectAllBookCollectionByUserId" parameterClass="int" resultMap="bookCollectionResult">
+		select * from bookcollection where userid=#userid#
+	</select>
+	
+	<!-- 向图书收藏表中添加一条记录 -->
+	<insert id="add" parameterClass="BookCollection">
+		insert into bookcollection (userid,bookid)
+		values(#userId#,#bookId#)
+	</insert>
+	<!-- 从图书收藏表中删除用户编号为userId，图书编号为bookId的一条记录 -->
+	<delete id="delete" parameterClass="java.util.Map">
+		delete from bookcollection where userid=#userId# and bookid=#bookId#
+	</delete>
+	<!-- 从图书收藏表中查询出用户编号为userId的所有记录 -->
+	<select id="select" parameterClass="int" 
+		resultMap="bookCollectionResult">
+		select * from bookcollection where userid=#userId#
+	</select>
+	
+	
+</sqlMap>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bookCategory">
+	<typeAlias alias="BookCategory" type="com.bs.bean.BookCategory" />
+	<typeAlias alias="Book" type="com.bs.bean.Book" />
+	<typeAlias alias="DeliveryAddress" type="com.bs.bean.DeliveryAddress" />
+	<typeAlias alias="User" type="com.bs.bean.User" />
+
+	<resultMap class="BookCategory" id="bookCategoryResult">
+		<result property="categoryId" column="categoryid" />
+		<result property="oneCategory" column="onecategory" />
+		<result property="books" column="categoryid"
+			select="bookCategory.selectAllBookByCategory" />
+	</resultMap>
+
+	<select id="selectAllBookByCategory" parameterClass="int"
+		resultClass="Book">
+		select * from book where categoryid=#categoryid#
+	</select>
+	<select id="selectAllCategory" resultMap="bookCategoryResult">
+		select * from bookcategory
+	</select>
+	<!-- 向数据库中插入一条图书类别 -->
+	<insert id="insert" parameterClass="BookCategory">
+		insert into bookcategory (categoryid,onecategory)
+		values (#categoryId#,#oneCategory#)
+	</insert>
+	<!-- 修改图书类别信息 -->
+	<update id="update" parameterClass="BookCategory">
+		update bookcategory set onecategory=#oneCategory#
+		where categoryid=#categoryId#
+	</update>
+	<!-- 删除一条图书类别 -->
+	<delete id="delete" parameterClass="int">
+		delete from bookcategory where categoryid=#categoryId#
+	</delete>
+	<!-- 从数据库中查询出图书编号为coategoryId的图书总数 -->
+	<select id="selectCount" parameterClass="int" resultClass="int">
+	select count(*) from book b inner join bookcategory bc where
+	b.categoryid=bc.categoryid and bc.categoryid=#categoryId#;
+	</select>
+
+</sqlMap>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE validators PUBLIC
+        "-//Apache Struts//XWork Validator 1.0.2//EN"
+        "http://struts.apache.org/dtds/xwork-validator-1.0.2.dtd">
+
+<validators>
+	<field name="name">
+		<field-validator type="requiredstring">
+			<message>姓名不能为空</message>
+		</field-validator>
+		<field-validator type="stringlength">
+			<message>姓名长度不能超过5个字符</message>
+		</field-validator>
+	</field>
+	<field name="sex">
+		<field-validator type="regex">
+			<param name="regexExpression"><![CDATA[\d{1}]]></param>
+			<message>性别不正确</message>
+		</field-validator>
+	</field>
+	<!-- 校验电话格式，使用regex正则表达式校验，regexExpression参数指定正则表达式 -->
+	<field name="phone">
+		<field-validator type="regex">
+			<param name="regexExpression"><![CDATA[\d{11}]]></param>
+			<message>电话号码格式不正确</message>
+		</field-validator>
+	</field>
+	<field name="address">
+		<field-validator type="requiredstring">
+			<message>地址不能为空</message>
+		</field-validator>
+		<field-validator type="stringlength">
+			<param name="maxLength">50</param>
+			<message>地址不能超过50个字符</message>
+		</field-validator>
+	</field>
+</validators>

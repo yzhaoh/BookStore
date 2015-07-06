@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="bookSales">
+	<typeAlias alias="BookSales" type="com.bs.bean.BookSales" />
+	<typeAlias alias="Book" type="com.bs.bean.Book" />
+	<typeAlias alias="BookCategory" type="com.bs.bean.BookCategory" />
+	<typeAlias alias="DeliveryAddress" type="com.bs.bean.DeliveryAddress" />
+	<typeAlias alias="User" type="com.bs.bean.User" />
+	<typeAlias alias="ShoppingCart" type="com.bs.bean.ShoppingCart" />
+	<typeAlias alias="BookCollection" type="com.bs.bean.BookCollection" />
+
+	<resultMap class="BookSales" id="bookSalesResult">
+		<result property="bookId" column="bookid" />
+		<result property="soldNumber" column="soldnumber" />
+		<result property="nowNumber" column="nownumber" />
+		<result property="salesTime" column="salestime" />
+		<result property="book" column="bookid" select="bookSales.selectBookByBookId" />
+	</resultMap>
+
+	<select id="selectBookByBookId" parameterClass="int"
+		resultClass="Book">
+		select * from book where bookid=#bookid#
+	</select>
+
+	<select id="selectAllBookSales" resultMap="bookSalesResult">
+		select * from
+		booksales
+	</select>
+
+	<!-- 修改图书销售表中图书编号为bookId的库存数量 -->
+	<update id="updateNowNumber" parameterClass="java.util.Map">
+		update booksales set
+		nownumber=#nowNumber# where bookid=#bookId#
+	</update>
+	<!-- 修改图书销售表中图书编号为bookId的上架时间 -->
+	<update id="updateDate" parameterClass="java.util.Map">
+		update booksales set
+		salestime=#date# where bookid=#bookId#
+	</update>
+	<!-- 查询出图书销售表中图书编号为bookId的库存数量 -->
+	<select id="selectNowNumber" parameterClass="int" resultClass="int">
+		select nownumber from booksales where bookid=#bookId#
+	</select>
+	<!-- 向图书销售表中添加一条记录 -->
+	<insert id="insert" parameterClass="BookSales">
+		insert into booksales
+		values(#bookId#,#soldNumber#,#nowNumber#,#salesTime#)
+	</insert>
+	<!-- 从图书销售表中分页查询 -->
+	<select id="select" parameterClass="java.util.HashMap"
+		resultMap="bookSalesResult">
+		select * from booksales limit #start#,#number#
+	</select>
+	<!-- 从数据库中查询出图书销售表中的记录总数 -->
+	<select id="selectCount" resultClass="int">
+		select count(*) from
+		booksales
+	</select>
+	<!-- 从图书销售表中查询出符合该关键字的图书销售记录总数 -->
+	<select id="selectKeyCount" resultClass="int" parameterClass="java.lang.String">
+		select count(*) from booksales bs inner join book b where bs.bookid=b.bookid
+		and (bs.bookid like '%$keyword$%' or b.bookname like
+		'%$keyword$%')
+	</select>
+	<!--从图书销售信息表中查询出图书编号或书名字段匹配salesKeywords字符串（该字段只要包含salesKeywords字符串即为匹配，如：“av 
+		”匹配“java”） 的第start条记录开始的number条图书销售记录 -->
+	<select id="selectKey" parameterClass="java.util.HashMap"
+		resultMap="bookSalesResult">
+		select bs.* from booksales bs inner join book b where bs.bookid=b.bookid
+		and (bs.bookid like '%$salesKeywords$%' or b.bookname like
+		'%$salesKeywords$%')
+		limit
+		#start#,#number#
+	</select>
+</sqlMap>

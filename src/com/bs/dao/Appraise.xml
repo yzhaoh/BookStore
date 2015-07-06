@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="appraise">
+	<typeAlias alias="Appraise" type="com.bs.bean.Appraise" />
+	<typeAlias alias="Book" type="com.bs.bean.Book" />
+	<typeAlias alias="BookCategory" type="com.bs.bean.BookCategory" />
+	<typeAlias alias="DeliveryAddress" type="com.bs.bean.DeliveryAddress" />
+	<typeAlias alias="User" type="com.bs.bean.User" />
+	<typeAlias alias="ShoppingCart" type="com.bs.bean.ShoppingCart" />
+	<typeAlias alias="BookCollection" type="com.bs.bean.BookCollection" />
+	<typeAlias alias="BookSales" type="com.bs.bean.BookSales" />
+	<typeAlias alias="Order" type="com.bs.bean.Order" />
+
+	<resultMap class="Appraise" id="appraiseResult">
+		<result property="orderId" column="orderid" />
+		<result property="bookId" column="bookid" />
+		<result property="starLevel" column="starlevel" />
+		<result property="appraiseGrade" column="appraisegrade" />
+		<result property="appraiseContent" column="appraisecontent" />
+		<result property="mallAnswer" column="mallanswer" />
+		<result property="appraiseTime" column="appraisetime" />
+		<result property="user" column="orderid" select="appraise.selectUserByOrderId" />
+		<result property="book" column="bookid" select="appraise.selectBookByBookId" />
+		<result property="order" column="orderid" select="appraise.selectOrderByOrderId" />
+	</resultMap>
+
+	<select id="selectUserByOrderId" parameterClass="int"
+		resultClass="User">
+		select * from user where userid=(select userid from orderbasic where
+		orderid=#orderid#)
+	</select>
+	<select id="selectBookByBookId" parameterClass="int"
+		resultClass="Book">
+		select * from book where bookid=#bookid#
+	</select>
+	<select id="selectOrderByOrderId" parameterClass="int"
+		resultClass="Order">
+		select * from orderbasic where orderid=#orderid#
+	</select>
+
+	<select id="selectAllAppraise" resultMap="appraiseResult">
+		select * from bookappraise
+	</select>
+	<select id="selectAppraiseByOrderId" parameterClass="int"
+		resultMap="appraiseResult">
+		select * from bookappraise where orderid=#orderid#
+	</select>
+
+	<!-- 向图书评价信息表中添加一条记录，商城回复（mallanswer）字段无需添加 -->
+	<insert id="insert" parameterClass="Appraise">
+		insert into bookappraise(orderid,bookid,starlevel,
+		appraisegrade,appraisecontent,appraisetime)
+		values(#orderId#,#bookId#,#starLevel#,#appraiseGrade#,#appraiseContent#,#appraiseTime#)
+	</insert>
+	<!-- 将图书评价信息表中的订单编号为orderId，图书编号为bookId的一条记录的商城回复（mallanswer）字段修改为mallanswer -->
+	<update id="update" parameterClass="java.util.Map">
+		update bookappraise set mallanswer=#mallanswer#
+		where orderid=#orderId# and bookid=#bookId#
+	</update>
+	<!-- 从图书评价信息表中删除订单编号为orderId,图书编号为bookId的一条记录 -->
+	<delete id="delete" parameterClass="java.util.Map">
+		delete from bookappraise where orderid=#orderId# and bookid=#bookId#
+	</delete>
+	<!-- 从图书评价信息表中查询出订单编号为orderId，图书编号为bookId的一条记录 -->
+	<select id="select" parameterClass="java.util.Map" resultMap="appraiseResult">
+		select * from bookappraise where orderid=#orderId# and bookid=#bookId#
+	</select>
+	<!-- 从评价信息表中查询出图书编号为bookId的第start条记录开始的number条图书记录,并按评价时间降序排列 -->
+	<select id="selectByBookId" parameterClass="java.util.Map"
+		resultMap="appraiseResult">
+		select * from bookappraise where bookid=#bookId#
+		order by appraisetime desc
+		limit #start#,#number#
+	</select>
+	<!-- 从评价信息表中查询出第start条记录开始的number条图书记录,并按评价时间降序排列 -->
+	<select id="selectAll" parameterClass="java.util.Map" resultMap="appraiseResult">
+		select * from bookappraise
+		order by appraisetime desc
+		limit #start#,#number#
+	</select>
+	<!-- 从评价信息表中查询出总记录数 -->
+	<select id="selectCount" resultClass="int">
+		select count(*) from bookappraise
+	</select>
+</sqlMap>

@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="book">
+	<typeAlias alias="Book" type="com.bs.bean.Book" />
+	<typeAlias alias="BookCategory" type="com.bs.bean.BookCategory" />
+	<typeAlias alias="DeliveryAddress" type="com.bs.bean.DeliveryAddress" />
+	<typeAlias alias="User" type="com.bs.bean.User" />
+	<typeAlias alias="ShoppingCart" type="com.bs.bean.ShoppingCart" />
+	<typeAlias alias="BookCollection" type="com.bs.bean.BookCollection" />
+	<typeAlias alias="BookSales" type="com.bs.bean.BookSales" />
+	<typeAlias alias="Order" type="com.bs.bean.Order" />
+	<typeAlias alias="Appraise" type="com.bs.bean.Appraise" />
+
+	<resultMap class="Book" id="bookResult">
+		<result property="bookId" column="bookid" />
+		<result property="categoryId" column="categoryid" />
+		<result property="bookName" column="bookname" />
+		<result property="author" column="author" />
+		<result property="publisher" column="publisher" />
+		<result property="publishDate" column="publishdate" />
+		<result property="ISBN" column="ISBN" />
+		<result property="fixedPrice" column="fixedprice" />
+		<result property="currentPrice" column="currentprice" />
+		<result property="contentSummary" column="contentsummary" />
+		<result property="image" column="image" />
+		<result property="category" column="categoryid" select="book.selectCategoryById" />
+		<result property="shoppingCart" column="bookid"
+			select="book.selectShoppingCartByBookId" />
+		<result property="bookCollection" column="bookid"
+			select="book.selectBookCollectionByBookId" />
+		<result property="bookSales" column="bookid"
+			select="book.selectBookSalesByBookId" />
+		<result property="order" column="bookid" select="book.selectOrderByBookId" />
+		<result property="appraise" column="bookid"
+			select="book.selectAllAppraiseByBookId" />
+	</resultMap>
+
+	<select id="selectCategoryById" parameterClass="int"
+		resultClass="BookCategory">
+		select * from bookcategory where categoryid=#categoryid#
+	</select>
+	<select id="selectShoppingCartByBookId" parameterClass="int"
+		resultClass="ShoppingCart">
+		select * from shoppingcart where bookid=#bookid#
+	</select>
+	<select id="selectBookCollectionByBookId" parameterClass="int"
+		resultClass="BookCollection">
+		select * from bookcollection where bookid=#bookid#
+	</select>
+	<select id="selectBookSalesByBookId" parameterClass="int"
+		resultClass="BookSales">
+		select * from booksales where bookid=#bookid#
+	</select>
+	<select id="selectOrderByBookId" parameterClass="int"
+		resultClass="Order">
+		select * from orderbasic ob,orderdetail od where
+		ob.orderid=ob.orderid and
+		od.bookid=#bookid#
+	</select>
+	<select id="selectAllAppraiseByBookId" parameterClass="int"
+		resultClass="Appraise">
+		select * from bookappraise where bookid=#bookid#
+	</select>
+
+	<select id="selectAllBook" resultMap="bookResult">
+		select * from book
+	</select>
+	<select id="selectBookById" parameterClass="int" resultMap="bookResult">
+		select * from book where bookid=#bookid#
+	</select>
+
+	<!-- 向数据库中插入一条图书记录 -->
+	<insert id="insert" parameterClass="Book">
+		insert into
+		book(categoryid,bookname,author,publisher,publishdate,
+		ISBN,fixedprice,currentprice,contentsummary,image)
+		values(#categoryId#,#bookName#,#author#,#publisher#,#publishDate#,
+		#ISBN#,#fixedPrice#,#currentPrice#,#contentSummary#,#image#)
+		<selectKey keyProperty="bookId" resultClass="int">
+			SELECT @@IDENTITY AS bookId
+		</selectKey>
+	</insert>
+	<!-- 通过图书编号从数据库中删除该条图书记录 -->
+	<delete id="delete" parameterClass="int">
+		delete from book where
+		bookid=#bookId#
+	</delete>
+	<!-- 从数据库中删除所有图书信息 -->
+	<delete id="deleteAll">
+		delete from book;
+	</delete>
+	<!-- 从数据库中查询出所有图书信息 -->
+	<select id="selectAll" resultMap="bookResult">
+		select * from book;
+	</select>
+	<!-- 从图书信息表中查询出第start条记录开始的number条图书记录 -->
+	<select id="selectStart" parameterClass="java.util.Map"
+		resultMap="bookResult">
+		select * from book limit #start#,#number#
+	</select>
+	<!-- 通过图书编号从数据库中查询出一条图书信息 -->
+	<select id="selectByBookId" parameterClass="java.lang.String"
+		resultMap="bookResult">
+		select * from book where bookid=#bookId#
+	</select>
+	<!-- 通过bookid字段修改数据库中的该图书信息 -->
+	<update id="update" parameterClass="Book">
+		update book set
+		categoryid=#categoryId#, bookname=#bookName#,
+		author=#author#,
+		publisher=#publisher#, publishdate=#publishDate#, ISBN=#ISBN#,
+		fixedprice=#fixedPrice#, currentprice=#currentPrice#,
+		contentsummary=#contentSummary# where bookid=#bookId#
+	</update>
+	<!-- 从图书信息表中查询出书名、作者、ISBN或出版社字段匹配str字符串 （该字段只要包含str字符串即为匹配，如：“av”匹配“java”） 
+		的第start条记录 开始的number条图书记录,并按销售数量升序排列 -->
+	<select id="selectBookBySalesASC" parameterClass="java.util.Map"
+		resultMap="bookResult">
+		select b.* from
+		book b left outer join booksales bs
+		on b.bookid=bs.bookid
+		where (b.bookname like '%$str$%' or b.author like '%$str$%'
+		or b.ISBN like
+		'%$str$%' or b.publisher like '%$str$%')
+		order by bs.soldnumber asc
+		limit #start#,#number#
+	</select>
+	<!-- 从图书信息表中查询出书名、作者、ISBN或出版社字段匹配str字符串 （该字段只要包含str字符串即为匹配，如：“av”匹配“java”） 
+		的第start条记录 开始的number条图书记录,并按销售数量降序排列 -->
+	<select id="selectBookBySalesDESC" parameterClass="java.util.Map"
+		resultMap="bookResult">
+		select b.* from
+		book b left outer join booksales bs
+		on b.bookid=bs.bookid
+		where (b.bookname like '%$str$%' or b.author like '%$str$%'
+		or b.ISBN like
+		'%$str$%' or b.publisher like '%$str$%')
+		order by bs.soldnumber desc
+		limit #start#,#number#
+	</select>
+	<!-- 从图书信息表中查询出书名、作者、ISBN或出版社字段匹配str字符串 （该字段只要包含str字符串即为匹配，如：“av”匹配“java”） 
+		的第start条记录 开始的number条图书记录,并按现价升序排列 -->
+	<select id="selectBookByPriceASC" parameterClass="java.util.Map"
+		resultMap="bookResult">
+		select * from book
+		where bookname like '%$str$%' or author
+		like '%$str$%'
+		or ISBN like '%$str$%' or publisher like '%$str$%'
+		order
+		by currentprice asc
+		limit #start#,#number#
+	</select>
+	<!-- 从图书信息表中查询出书名、作者、ISBN或出版社字段匹配str字符串 （该字段只要包含str字符串即为匹配，如：“av”匹配“java”） 
+		的第start条记录 开始的number条图书记录,并按现价降序排列 -->
+	<select id="selectBookByPriceDESC" parameterClass="java.util.Map"
+		resultMap="bookResult">
+		select * from book
+		where bookname like '%$str$%' or author
+		like '%$str$%'
+		or ISBN like '%$str$%' or publisher like '%$str$%'
+		order
+		by currentprice desc
+		limit #start#,#number#
+	</select>
+	<!-- 从图书信息表中查询出书名、作者、ISBN或出版社字段匹配str字符串 （该字段只要包含str字符串即为匹配，如：“av”匹配“java”） 
+		的第start条记录 开始的number条图书记录,并按评价（该图书的好评总数）升序排列 -->
+	<select id="selectBookByAppraiseASC" parameterClass="java.util.Map"
+		resultMap="bookResult">
+		select b.* from
+		book b left outer join bookappraise ba
+		on b.bookid=ba.bookid and ba.appraisegrade='3'
+		where (b.bookname like '%$str$%' or b.author like '%$str$%'
+		or b.ISBN like
+		'%$str$%' or b.publisher like '%$str$%')
+		group by b.bookid
+		order by count(ba.bookid) asc
+		limit #start#,#number#
+	</select>
+	<!-- 从图书信息表中查询出书名、作者、ISBN或出版社字段匹配str字符串 （该字段只要包含str字符串即为匹配，如：“av”匹配“java”） 
+		的第start条记录 开始的number条图书记录,并按评价（该图书的好评总数）降序排列 -->
+	<select id="selectBookByAppraiseDESC" parameterClass="java.util.Map"
+		resultMap="bookResult">
+		select b.* from
+		book b left outer join bookappraise ba
+		on b.bookid=ba.bookid and ba.appraisegrade='3'
+		where (b.bookname like '%$str$%' or b.author like '%$str$%'
+		or b.ISBN like
+		'%$str$%' or b.publisher like '%$str$%')
+		group by b.bookid
+		order by count(ba.bookid) desc
+		limit #start#,#number#
+	</select>
+	<!-- 从数据库中查询出图书类别编号为categoryid的第start条记录开始的number条图书记录,并按销售数量升序排列 -->
+	<select id="selectBySalesASC" parameterClass="java.util.Map"
+		resultMap="bookResult">
+		select b.* from
+		book b left outer join booksales bs
+		on b.bookid=bs.bookid
+		where b.categoryid=#categoryid#
+		order by bs.soldnumber asc
+		limit
+		#start#,#number#
+	</select>
+	<!-- 从数据库中查询出图书类别编号为categoryid的第start条记录开始的number条图书记录,并按销售数量降序排列 -->
+	<select id="selectBySalesDESC" parameterClass="java.util.Map"
+		resultMap="bookResult">
+		select b.* from
+		book b left outer join booksales bs
+		on b.bookid=bs.bookid
+		where b.categoryid=#categoryid#
+		order by bs.soldnumber desc
+		limit
+		#start#,#number#
+	</select>
+	<!-- 从数据库中查询出图书类别编号为categoryid的第start条记录开始的number条图书记录,并按现价升序排列 -->
+	<select id="selectByPriceASC" parameterClass="java.util.Map"
+		resultMap="bookResult">
+		select * from book
+		where categoryid=#categoryid#
+		order by
+		currentprice asc
+		limit #start#,#number#
+	</select>
+	<!-- 从数据库中查询出图书类别编号为categoryid的第start条记录开始的number条图书记录,并按现价降序排列 -->
+	<select id="selectByPriceDESC" parameterClass="java.util.Map"
+		resultMap="bookResult">
+		select * from book
+		where categoryid=#categoryid#
+		order by
+		currentprice desc
+		limit #start#,#number#
+	</select>
+	<!-- 从数据库中查询出图书类别编号为categoryid的第start条记录开始的number条图书记录,并按评价（该图书的好评总数）升序排列 -->
+	<select id="selectByAppraiseASC" parameterClass="java.util.Map"
+		resultMap="bookResult">
+		select b.* from
+		book b left outer join bookappraise ba
+		on b.bookid=ba.bookid and ba.appraisegrade='3'
+		where b.categoryid=#categoryid#
+		group by b.bookid
+		order by count(ba.bookid) asc
+		limit #start#,#number#
+	</select>
+	<!-- 从数据库中查询出图书类别编号为categoryid的第start条记录开始的number条图书记录,并按评价（该图书的好评总数）降序排列 -->
+	<select id="selectByAppraiseDESC" parameterClass="java.util.Map"
+		resultMap="bookResult">
+		select b.* from
+		book b left outer join bookappraise ba
+		on b.bookid=ba.bookid and ba.appraisegrade='3'
+		where b.categoryid=#categoryid#
+		group by b.bookid
+		order by count(b.bookid) desc
+		limit #start#,#number#
+	</select>
+	<!-- 从数据库中查询出图书类别编号为categoryid的第start条记录开始的number条图书记录 -->
+	<select id="selectById" parameterClass="java.util.Map"
+		resultMap="bookResult">
+		select * from book
+		where categoryid=#categoryid#
+		limit
+		#start#,#number#
+	</select>
+	<!-- 从图书信息表中查询出书名、作者、ISBN或出版社字段匹配str字符串 （该字段只要包含str字符串即为匹配，如：“av”匹配“java”） 
+		的第start条记录开始的number条图书记录 -->
+	<select id="selectByStr" parameterClass="java.util.Map"
+		resultMap="bookResult">
+		select * from book
+		where bookname like '%$str$%' or author
+		like '%$str$%'
+		or ISBN like '%$str$%' or publisher like '%$str$%'
+		limit
+		#start#,#number#
+	</select>
+
+	<!-- 从数据库中查询出图书销售数量最大的number条记录 -->
+	<select id="selectSalesTop" parameterClass="int" resultMap="bookResult">
+		select b.* from
+		book b left outer join booksales bs
+		on b.bookid=bs.bookid
+		order by bs.soldnumber desc
+		limit 0,#number#
+	</select>
+	<!-- 从数据库中查询出图书上架时间最短的number条记录 -->
+	<select id="selectSalesTimeTop" parameterClass="int" resultMap="bookResult">
+		select b.* from
+		book b left outer join booksales bs
+		on b.bookid=bs.bookid
+		order by bs.salestime desc
+		limit 0,#number#
+	</select>
+	<!-- 从数据库中查询出图书信息表中的记录总数 -->
+	<select id="selectCount" resultClass="int">
+		select count(*) from book
+	</select>
+	<!-- 修改图片信息表中图片字段 -->
+	<update id="updateImage" parameterClass="java.util.HashMap">
+		update book set image=#image# where bookid=#bookId#
+	</update>
+	<!-- 从数据库中查询出图书信息表中符合该关键字（书名、作者、ISBN或出版社字段匹配str字符串）的记录总数 -->
+	<select id="selectKeyCount" resultClass="int" parameterClass="java.lang.String">
+		select count(*) from book where bookname like '%$keyword$%' or author
+		like '%$keyword$%'
+		or ISBN like '%$keyword$%' or publisher like '%$keyword$%'
+	</select>
+
+</sqlMap>

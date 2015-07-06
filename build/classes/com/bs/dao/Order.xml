@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="order">
+	<typeAlias alias="Order" type="com.bs.bean.Order" />
+	<typeAlias alias="BookCollection" type="com.bs.bean.BookCollection" />
+	<typeAlias alias="ShoppingCart" type="com.bs.bean.ShoppingCart" />
+	<typeAlias alias="BookCategory" type="com.bs.bean.BookCategory" />
+	<typeAlias alias="Book" type="com.bs.bean.Book" />
+	<typeAlias alias="DeliveryAddress" type="com.bs.bean.DeliveryAddress" />
+	<typeAlias alias="User" type="com.bs.bean.User" />
+	<typeAlias alias="Appraise" type="com.bs.bean.Appraise" />
+
+	<resultMap class="Order" id="orderResult">
+		<result property="orderId" column="orderid" />
+		<result property="userId" column="userid" />
+		<result property="addressId" column="addressid" />
+		<result property="orderDate" column="orderdate" />
+		<result property="ispayed" column="ispayed" />
+		<result property="paymode" column="paymode" />
+		<result property="totalprice" column="totalprice" />
+		<result property="user" column="userid" select="order.selectUserByUserId" />
+		<result property="deliveryAddress" column="addressid"
+			select="order.selectDeliveryAddressByAddressId" />
+		<result property="book" column="orderid" select="order.selectBooks" />
+		<result property="appraise" column="orderid"
+			select="order.selectAllAppraiseByOrderId" />
+	</resultMap>
+	<resultMap class="Book" id="booksResult">
+		<result property="bookId" column="bookid" />
+		<result property="bookName" column="bookname" />
+		<result property="author" column="author" />
+		<result property="publisher" column="publisher" />
+		<result property="ISBN" column="ISBN" />
+		<result property="currentPrice" column="currentprice" />
+		<result property="number" column="number" />
+	</resultMap>
+
+	<select id="selectUserByUserId" parameterClass="int"
+		resultClass="User">
+		select * from user where userid=#userid#
+	</select>
+	<select id="selectDeliveryAddressByAddressId" parameterClass="int"
+		resultClass="DeliveryAddress">
+		select * from deliveryaddress where addressid=#addressid#
+	</select>
+	<select id="selectBooks" parameterClass="int" resultClass="java.util.HashMap">
+		select b.bookid as bookId ,od.number as number,b.bookname as
+		bookName,b.currentprice as currentPrice from orderdetail od inner
+		join
+		book b where od.bookid=b.bookid and od.orderid=#orderid#
+	</select>
+	<select id="selectAllAppraiseByOrderId" parameterClass="int"
+		resultClass="Appraise">
+		select * from bookappraise where orderid=#orderid#
+	</select>
+
+	<select id="selectAllOrderByUserId" parameterClass="int"
+		resultMap="orderResult">
+		select * from orderbasic where userid=#userid#
+	</select>
+	<select id="selectOrderByOrderId" parameterClass="int"
+		resultMap="orderResult">
+		select * from orderbasic where orderid=#orderid#
+	</select>
+
+	<!-- 向订单基本信息表（orderbasic）添加一条记录 -->
+	<insert id="insert" parameterClass="Order">
+		insert into orderbasic
+		(orderid,userid,addressid,
+		orderdate,ispayed,paymode,totalprice)
+		values(null,#userId#,#addressId#,
+		#orderDate#,#ispayed#,#paymode#,#totalprice#)
+		<selectKey keyProperty="orderId" resultClass="int">
+			SELECT @@IDENTITY AS orderId
+		</selectKey>
+	</insert>
+	<!-- 向订单详细信息表（orderdetail）添加一条记录 -->
+	<insert id="insertOrderDetail" parameterClass="java.util.Map">
+		insert into
+		orderdetail (orderid,bookid,number)
+		values(#orderId#,#bookId#,#number#)
+	</insert>
+	<!-- 将订单基本信息表（orderbasic）中订单编号为orderId的记录地址编号修改为addressId -->
+	<update id="update" parameterClass="java.util.Map">
+		update orderbasic set
+		addressid=#addressId#
+		where orderid=#orderId#
+	</update>
+	<!-- 删除订单基本信息表（orderbasic）中订单编号为orderId的记录 -->
+	<delete id="deleteOrderBasic" parameterClass="int">
+		delete from
+		orderbasic where orderid=#orderId#
+	</delete>
+	<!-- 删除订单详细信息表（orderdetail）中订单编号为orderId的记录 -->
+	<delete id="deleteOrderDetail" parameterClass="int">
+		delete from
+		orderdetail where orderid=#orderId#
+	</delete>
+	<!-- 从订单基本信息表（orderbasic）中查询出用户编号为userId的第start条记录开始的number条订单记录 -->
+	<select id="selectAll" parameterClass="java.util.Map" resultMap="orderResult">
+		select * from orderbasic
+		where userid=#userId#
+		limit #start#,#number#
+	</select>
+	<!-- 从订单基本信息表（orderbasic）中查询出未付款的用户编号为userId的第start条记录开始的number条订单记录 -->
+	<select id="selectOrderByIsPayed" parameterClass="java.util.Map"
+		resultMap="orderResult">
+		select * from orderbasic
+		where userid=#userId# and ispayed=0
+		limit #start#,#number#
+	</select>
+	<!-- 从订单基本信息表（orderbasic）中查询出订单编号为orderId的记录 -->
+	<select id="select" parameterClass="int" resultMap="orderResult">
+		select * from
+		orderbasic
+		where orderid=#orderId#
+	</select>
+	<!-- 获得订单基本信息表的记录总数 -->
+	<select id="selectCount" resultClass="int">
+		select count(*) from
+		orderbasic
+	</select>
+	<!-- 从订单基本信息表中查询出第start条记录开始的number条订单记录 -->
+	<select id="selectStart" parameterClass="java.util.HashMap"
+		resultMap="orderResult">
+		select * from orderbasic limit #start#,#number#
+	</select>
+	<!--从订单信息表中查询出符合该关键字（订单编号、用户编号、用户名、联系电话或订单日期字段匹配str字符串）的订单记录总数 -->
+	<select id="selectKeyCount" resultClass="int" parameterClass="java.lang.String">
+		select count(*) from orderbasic ob inner join user u
+		inner join
+		deliveryaddress da where ob.userid=u.userid and
+		ob.userid=da.userid and
+		ob.addressid=da.addressid
+		and (ob.orderid like
+		'%$str$%' or ob.userid
+		like
+		'%$str$%' or u.username like
+		'%$str$%' or da.phone like '%$str$%'
+		or ob.orderdate like
+		'%$str$%')
+	</select>
+	<!-- 从订单信息表中查询出订单编号、用户编号、用户名、联系电话或订单日期字段匹配str字符串 的第start条记录开始的number条订单记录 -->
+	<select id="selectByStr" parameterClass="java.util.HashMap"
+		resultMap="orderResult">
+		select ob.* from orderbasic ob
+		inner join user u
+		inner
+		join
+		deliveryaddress da where ob.userid=u.userid
+		and
+		ob.userid=da.userid
+		and
+		ob.addressid=da.addressid
+		and (ob.orderid
+		like
+		'%$str$%' or ob.userid
+		like
+		'%$str$%' or u.username like
+		'%$str$%'
+		or da.phone like '%$str$%' or
+		ob.orderdate like
+		'%$str$%') limit
+		#start#,#number#
+	</select>
+	<select id="selectBooksByOrderId" parameterClass="int"
+		resultMap="booksResult">
+		select b.bookid, b.bookname,b.author, b.publisher, b.ISBN,
+		b.currentprice,od.number from orderdetail od inner join book b where
+		od.bookid=b.bookid and od.orderid=#orderId#
+	</select>
+	<select id="selectAddress" parameterClass="int" resultClass="int">
+		select count(*) from orderbasic where addressid=#addressId#
+	</select>
+	<!-- 从订单基本信息表（orderbasic）中查询出用户编号为userId的订单记录 -->
+	<select id="selectAllByUserId" parameterClass="int" resultMap="orderResult">
+		select * from orderbasic
+		where userid=#userId#
+	</select>
+	<!-- 修改订单基本信息表（orderbasic）中订单编号为orderId的记录“是否付款”字段值为0 -->
+	<update id="updateIsPayed" parameterClass="int">
+		update orderbasic set
+		ispayed=0 where orderid=#orderId#
+	</update>
+</sqlMap>

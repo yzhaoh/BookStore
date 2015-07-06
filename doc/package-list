@@ -1,0 +1,8 @@
+com.bs.action
+com.bs.bean
+com.bs.common
+com.bs.dao
+com.bs.daoImpl
+com.bs.service
+com.bs.serviceImpl
+com.bs.test

@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+     http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+     http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+     http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc-3.0.xsd
+     http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+     http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.0.xsd">
+
+	<!-- 配置数据源,连接池采用的是c3p0 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<property name="driverClass" value="${jdbc.driver}" />
+		<property name="jdbcUrl" value="${jdbc.url}" />
+		<property name="user" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+	</bean>
+
+	<!-- 上面的数据源的value值用的是表达式，原因就在这里，这将配置文件放到了ibatis目录下，也就是jdbc.properties，设置了c3p0的各项参数 -->
+	<bean id="propertyConfig"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location">
+			<value>/conf/jdbc.properties</value>
+		</property>
+	</bean>
+
+	<!-- 配置iBatis的sqlMapClient，这里当然是交给了spring去处理,其中，将SqlMapConfig文件放到了WEB-INF的iBatis目录下，也是便于管理 -->
+	<bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+		<property name="configLocation">
+			<value>/conf/SqlMapConfig.xml</value>
+		</property>
+		<!-- 这里使用的数据源就是上面配置的数据源 -->
+		<property name="dataSource">
+			<ref bean="dataSource" />
+		</property>
+	</bean>
+
+	<!-- 数据持久层实体 -->
+	<bean id="userDao" class="com.bs.daoImpl.UserDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	<bean id="shoppingCartDao" class="com.bs.daoImpl.ShoppingCartDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	<bean id="bookDao" class="com.bs.daoImpl.BookDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	<bean id="bookSalesDao" class="com.bs.daoImpl.BookSalesDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	<bean id="bookCategoryDao" class="com.bs.daoImpl.BookCategoryDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	<bean id="bookCollectionDao" class="com.bs.daoImpl.BookCollectionDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	<bean id="deliveryAddressDao" class="com.bs.daoImpl.DeliveryAddressDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	<bean id="orderDao" class="com.bs.daoImpl.OrderDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+	<bean id="appraiseDao" class="com.bs.daoImpl.AppraiseDaoImpl">
+		<property name="sqlMapClient" ref="sqlMapClient"></property>
+	</bean>
+
+	<!-- 业务逻辑层实体 -->
+	<bean id="userService" class="com.bs.serviceImpl.UserServiceImpl">
+		<property name="userDao" ref="userDao"></property>
+		<property name="validateCode" ref="validateCode"></property>
+		<property name="shoppingCartDao" ref="shoppingCartDao"></property>
+	</bean>
+	<bean id="bookService" class="com.bs.serviceImpl.BookServiceImpl">
+		<property name="bookDao" ref="bookDao"></property>
+		<property name="bookSalesDao" ref="bookSalesDao"></property>
+		<property name="userDao" ref="userDao"></property>
+	</bean>
+	<bean id="bookCategoryService" class="com.bs.serviceImpl.BookCategoryServiceImpl">
+		<property name="bookCategoryDao" ref="bookCategoryDao"></property>
+	</bean>
+	<bean id="bookCollectionService" class="com.bs.serviceImpl.BookCollectionServiceImpl">
+		<property name="bookCollectionDao" ref="bookCollectionDao"></property>
+	</bean>
+	<bean id="bookSalesService" class="com.bs.serviceImpl.BookSalesServiceImpl">
+		<property name="bookSalesDao" ref="bookSalesDao"></property>
+	</bean>
+	<bean id="deliveryAddressService" class="com.bs.serviceImpl.DeliveryAddressServiceImpl">
+		<property name="deliveryAddressDao" ref="deliveryAddressDao"></property>
+		<property name="orderDao" ref="orderDao"></property>
+	</bean>
+	<bean id="shoppingCartService" class="com.bs.serviceImpl.ShoppingCartServiceImpl">
+		<property name="shoppingCartDao" ref="shoppingCartDao"></property>
+	</bean>
+	<bean id="orderService" class="com.bs.serviceImpl.OrderServiceImpl">
+		<property name="orderDao" ref="orderDao"></property>
+		<property name="deliveryAddressDao" ref="deliveryAddressDao"></property>
+	</bean>
+	<bean id="appraiseService" class="com.bs.serviceImpl.AppraiseServiceImpl">
+		<property name="appraiseDao" ref="appraiseDao"></property>
+	</bean>
+
+	<!-- 工具类实体 -->
+	<bean id="validateCode" class="com.bs.common.ValidateCode">
+	</bean>
+
+	<!-- 控制层实体 -->
+	<bean id="userAction" class="com.bs.action.UserAction" scope="prototype">
+		<property name="userService" ref="userService"></property>
+	</bean>
+	<bean id="bookAction" class="com.bs.action.BookAction" scope="prototype">
+		<property name="bookService" ref="bookService"></property>
+	</bean>
+	<bean id="bookCategoryAction" class="com.bs.action.BookCategoryAction"
+		scope="prototype">
+		<property name="bookCategoryService" ref="bookCategoryService"></property>
+	</bean>
+	<bean id="bookSalesAction" class="com.bs.action.BookSalesAction"
+		scope="prototype">
+		<property name="bookSalesService" ref="bookSalesService"></property>
+	</bean>
+	<bean id="orderAction" class="com.bs.action.OrderAction" scope="prototype">
+		<property name="orderService" ref="orderService"></property>
+	</bean>
+
+	<!-- 配置事务处理 -->
+
+	<!-- 配置事务管理器 -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	<!--配置哪些方法,什么情况下需要回滚 -->
+	<tx:advice id="serviceAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<!--当代理的service层中的方法抛出异常的时候才回滚,必须加rollback-for参数 -->
+			<tx:method name="insert*" propagation="REQUIRED" isolation="READ_COMMITTED" />
+			<tx:method name="delete*" propagation="REQUIRED" isolation="READ_COMMITTED" />
+			<tx:method name="update*" propagation="REQUIRED" isolation="READ_COMMITTED" />
+			<!--除了上面标识的方法,其他方法全是只读方法 -->
+			<tx:method name="select*" read-only="true" />
+		</tx:attributes>
+	</tx:advice>
+	<!-- 配置哪些类的方法需要进行事务管理 -->
+	<aop:config proxy-target-class="true" expose-proxy="true">
+		<aop:pointcut id="servicePointcut"
+			expression="execution(* com.bs.serviceImpl.*.*(..)) " />
+		<aop:advisor pointcut-ref="servicePointcut" advice-ref="serviceAdvice" />
+	</aop:config>
+	<!-- 事务注解 -->
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+</beans>

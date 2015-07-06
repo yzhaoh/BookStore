@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="shoppingCart">
+	<typeAlias alias="ShoppingCart" type="com.bs.bean.ShoppingCart" />
+	<typeAlias alias="BookCategory" type="com.bs.bean.BookCategory" />
+	<typeAlias alias="Book" type="com.bs.bean.Book" />
+	<typeAlias alias="DeliveryAddress" type="com.bs.bean.DeliveryAddress" />
+	<typeAlias alias="User" type="com.bs.bean.User" />
+
+	<resultMap class="ShoppingCart" id="shoppingCartResult">
+		<result property="userId" column="userid" />
+		<result property="bookId" column="bookid" />
+		<result property="number" column="number" />
+		<result property="user" column="userid"
+			select="shoppingCart.selectUserByUserId" />
+		<result property="book" column="bookid"
+			select="shoppingCart.selectBookByBookId" />
+	</resultMap>
+
+	<select id="selectUserByUserId" parameterClass="int"
+		resultClass="User">
+		select * from user where userid=#userid#
+	</select>
+	<select id="selectBookByBookId" parameterClass="int"
+		resultClass="Book">
+		select * from book where bookid=#bookid#
+	</select>
+	<select id="selectAllShoppingCartByUserId" parameterClass="int"
+		resultMap="shoppingCartResult">
+		select * from shoppingcart where userid=#userid#
+	</select>
+
+	<!-- 向购物车信息表中添加一条记录 -->
+	<insert id="insert" parameterClass="ShoppingCart">
+		insert into shoppingcart
+		(userid,bookid,number)
+		values(#userId#,#bookId#,#number#)
+	</insert>
+	<!-- 从购物车信息表中删除用户编号为userId图书编号为bookId的一条记录 -->
+	<delete id="delete" parameterClass="java.util.Map">
+		delete from shoppingcart
+		where userid=#userId# and bookid=#bookId#
+	</delete>
+	<!-- 从购物车信息表中删除用户编号为userId的所有记录 -->
+	<delete id="deleteByUserId" parameterClass="int">
+		delete from
+		shoppingcart
+		where userid=#userId#
+	</delete>
+	<!-- 修改购物车信息表中的该条记录的number字段加1 -->
+	<update id="update" parameterClass="ShoppingCart">
+		update shoppingcart set
+		number=number+1
+		where userid=#userId# and bookid=#bookId#
+	</update>
+	<!-- 从购物车信息表中查询出用户编号为userId的所有记录 -->
+	<select id="select" parameterClass="int" resultMap="shoppingCartResult">
+		select * from
+		shoppingcart
+		where userid=#userId#
+	</select>
+	<!-- 从购物车信息表中查询出用户名为username的所有记录 -->
+	<select id="selectByUsername" parameterClass="java.lang.String"
+		resultMap="shoppingCartResult">
+		select sc.* from shoppingcart sc inner join user u
+		where
+		u.userid=sc.userid and u.username=#username#
+	</select>
+	<!-- 从购物车信息表中查询出用户编号为userId，图书编号为bookId的购物车记录总数 -->
+	<select id="selectCount" parameterClass="java.util.HashMap"
+		resultClass="int">
+		select count(*) from shoppingcart
+		where
+		userid=#userId# and bookid=#bookId#
+	</select>
+</sqlMap>

@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="user">
+	<typeAlias alias="User" type="com.bs.bean.User" />
+	<typeAlias alias="DeliveryAddress" type="com.bs.bean.DeliveryAddress" />
+	<typeAlias alias="ShoppingCart" type="com.bs.bean.ShoppingCart" />
+	<typeAlias alias="BookCollection" type="com.bs.bean.BookCollection" />
+	<typeAlias alias="Order" type="com.bs.bean.Order" />
+	<typeAlias alias="Book" type="com.bs.bean.Book" />
+	<typeAlias alias="Appraise" type="com.bs.bean.Appraise" />
+
+	<resultMap class="user" id="userResult">
+		<result property="userId" column="userid" />
+		<result property="username" column="username" />
+		<result property="password" column="password" />
+		<result property="name" column="name" />
+		<result property="sex" column="sex" />
+		<result property="email" column="email" />
+		<result property="checkEmail" column="checkEmail" />
+		<result property="phone" column="phone" />
+		<result property="icon" column="icon" />
+		<result property="address" column="address" />
+		<result property="noLogin" column="nologin" />
+		<result property="deliveryAddress" column="userid"
+			select="user.selectAllAddressByUserId" />
+		<result property="shoppingCart" column="userid"
+			select="user.selectAllShoppingCartByUserId" />
+		<result property="bookCollection" column="userid"
+			select="user.selectAllBookCollectionByUserId" />
+		<result property="order" column="userid" select="user.selectAllOrderByUserId" />
+		<result property="appraise" column="userid"
+			select="user.selectAllAppraiseByUserId" />
+	</resultMap>
+
+	<resultMap class="ShoppingCart" id="shoppingCartResult">
+		<result property="userId" column="userid" />
+		<result property="bookId" column="bookid" />
+		<result property="number" column="number" />
+		<result property="user" column="userid"
+			select="shoppingCart.selectUserByUserId" />
+		<result property="book" column="bookid"
+			select="shoppingCart.selectBookByBookId" />
+	</resultMap>
+
+	<select id="selectBookByBookId" parameterClass="int"
+		resultClass="Book">
+		select * from book where bookid=#bookid#
+	</select>
+
+
+
+	<select id="selectAllAddressByUserId" parameterClass="int"
+		resultClass="DeliveryAddress">
+		select * from deliveryaddress where userid=#userid#
+	</select>
+	<select id="selectAllShoppingCartByUserId" parameterClass="int"
+		resultMap="shoppingCartResult" resultClass="ShoppingCart">
+		select * from shoppingcart
+		where userid=#userid#
+	</select>
+	<select id="selectAllBookCollectionByUserId" parameterClass="int"
+		resultClass="BookCollection">
+		select * from bookcollection where userid=#userid#
+	</select>
+	<select id="selectAllOrderByUserId" parameterClass="int"
+		resultClass="Order">
+		select * from orderbasic where userid=#userid#
+	</select>
+	<select id="selectAllAppraiseByUserId" parameterClass="int"
+		resultClass="Appraise">
+		select * from bookappraise where orderid in (select
+		orderid from orderbasic
+		where userid=#userid#)
+	</select>
+
+	<!-- 根据用户名从数据库中查询出用户密码 -->
+	<select id="selectPasswordByUsername" parameterClass="java.lang.String"
+		resultClass="java.lang.String">
+		select password from user where username=#username#
+	</select>
+	<!-- 根据用户id查询用户 -->
+	<select id="selectUserByUserId" parameterClass="int" resultMap="userResult">
+		select * from user where userid=#userid#
+	</select>
+	<!-- 向数据库中插入一条用户记录 -->
+	<insert id="insert" parameterClass="User">
+		insert into user
+		(username,password,name,sex,email,checkEmail,phone,address,nologin)
+		values(#username#,#password#,#name#,#sex#,#email#,#checkEmail#,#phone#,#address#,#noLogin#)
+	</insert>
+	<!-- 通过用户名从数据库中删除该用户记录 -->
+	<delete id="deleteUserByUsername" parameterClass="java.lang.String">
+		delete from
+		user where username=#username#
+	</delete>
+	<!-- 从数据库中查询出所有用户信息 -->
+	<select id="select" resultMap="userResult">
+		select * from user;
+	</select>
+	<!-- 通过用户名从数据库中查询出一条用户信息 -->
+	<select id="selectUserByUsername" parameterClass="java.lang.String"
+		resultMap="userResult">
+		select * from user where username=#username#
+	</select>
+	<!-- 从数据库中删除所有用户信息 -->
+	<delete id="delete">
+		delete from user
+	</delete>
+	<!-- 更新数据库中的该用户 -->
+	<update id="update" parameterClass="User">
+		update user set
+		name=#name#,sex=#sex#,
+		phone=#phone#,address=#address#
+		where
+		userid=#userId#
+	</update>
+	<!-- 更新数据库中的该用户 -->
+	<update id="update2" parameterClass="User">
+		update user set
+		name=#name#,sex=#sex#,
+		phone=#phone#,address=#address#,email=#email#,checkEmail=#checkEmail#
+		where userid=#userId#
+	</update>
+	<!-- 更新数据库中用户名为username的用户的密码为password -->
+	<update id="updatePassword" parameterClass="User">
+		update user set
+		password=#password# where username=#username#
+	</update>
+	<!-- 修改用户头像 -->
+	<update id="updateIcon" parameterClass="java.util.Map">
+		update user set
+		icon=#icon# where userid=#userId#
+	</update>
+	<!-- 修改用户禁止登陆字段 -->
+	<update id="updateNoLogin" parameterClass="java.util.Map">
+		update user set
+		nologin=#noLogin# where userid=#userId#
+	</update>
+	<!-- 修改用户表（user）验证邮箱（checkEmail）字段 -->
+	<update id="updateCheckEmail" parameterClass="java.util.HashMap">
+		update user set checkemail=#checkEmail# where username=#username#
+	</update>
+
+</sqlMap>

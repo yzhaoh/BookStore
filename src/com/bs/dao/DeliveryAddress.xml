@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMap      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+<sqlMap namespace="deliveryAddress">
+	<typeAlias alias="DeliveryAddress" type="com.bs.bean.DeliveryAddress" />
+	<typeAlias alias="User" type="com.bs.bean.User" />
+	<resultMap class="deliveryAddress" id="deliveryAddressResult">
+		<result property="addressId" column="addressid" />
+		<result property="userId" column="userid"/>
+		<result property="deliveryPerson" column="deliveryperson" />
+		<result property="address" column="address" />
+		<result property="postcode" column="postcode" />
+		<result property="phone" column="phone" />
+		<result property="defaultAddress" column="defaultaddress" />
+		<result property="deleteOrUpdate" column="deleteorupdate" />
+		<result property="user" column="userid"
+			select="deliveryAddress.selectUserByUserId" />
+	</resultMap>
+	<select id="selectUserByUserId" parameterClass="int"
+		resultClass="User">
+		select * from user where userid=#userid#
+	</select>
+	<select id="queryAllDeliveryAddress" resultMap="deliveryAddressResult">
+		select * from
+		deliveryaddress
+	</select>
+
+	<!-- 向收货地址信息表中添加一条记录 -->
+	<insert id="insert" parameterClass="DeliveryAddress">
+		insert into deliveryaddress
+		(addressid, userid, deliveryperson,
+		address,
+		postcode, phone, defaultaddress, deleteorupdate)
+		values(null,#userId#,#deliveryPerson#,#address#,
+		#postcode#,#phone#,#defaultAddress#,#deleteOrUpdate#)
+		<selectKey keyProperty="addressId" resultClass="int">
+			select
+			LAST_INSERT_ID() as addressId
+		</selectKey>
+	</insert>
+	<!-- 从地址信息表中查询出地址编号为addressId的一条记录 -->
+	<select id="selectByAddressId" parameterClass="int"
+		resultMap="deliveryAddressResult">
+		select * from deliveryaddress
+		where addressid=#addressId#
+	</select>
+	<!-- 从地址信息表中查询出用户编号为userId，deleteorupdate（删除或修改）字段值为1的所有记录 -->
+	<select id="selectAllByUserId" parameterClass="int"
+		resultMap="deliveryAddressResult">
+		select * from deliveryaddress
+		where userid=#userId# and
+		deleteorupdate=1
+	</select>
+	<!-- 修改地址信息表中地址编号为addressId的默认地址字段为defaultAddress -->
+	<update id="updateDefaultAddress" parameterClass="java.util.Map">
+		update
+		deliveryaddress set defaultaddress=#defaultAddress#
+		where
+		addressid=#addressId#
+	</update>
+	<!-- 修改收货地址信息表中地址编号为addressId的deleteorupdate字段值为0 -->
+	<update id="updateDeleteOrUpdate" parameterClass="java.util.Map">
+		update
+		deliveryaddress set deleteorupdate=0
+		where addressid=#addressId#
+	</update>
+	<!-- 从地址信息表中查询出用户编号为userId的默认地址的地址编号 -->
+	<select id="selectDefaultAddress" parameterClass="int"
+		resultClass="int">
+		select addressid from deliveryaddress
+		where userid=#userId#
+		and defaultaddress=0
+	</select>
+	<!--修改收货地址信息表中的一条记录 -->
+	<update id="update" parameterClass="DeliveryAddress">
+		update deliveryaddress set
+		deliveryperson=#deliveryPerson#,
+		address=#address#,
+		postcode=#postcode#,
+		phone=#phone# where addressid=#addressId#
+	</update>
+	<!-- 删除地址编号为addressId的一条记录 -->
+	<delete id="delete" parameterClass="int">
+		delete from deliveryaddress where addressid=#addressId#
+	</delete>
+</sqlMap>

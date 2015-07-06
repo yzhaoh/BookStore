@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE sqlMapConfig      
+    PUBLIC "-//ibatis.apache.org//DTD SQL Map Config 2.0//EN"      
+    "http://ibatis.apache.org/dtd/sql-map-config-2.dtd">
+    <sqlMapConfig>
+    	<settings enhancementEnabled="true" lazyLoadingEnabled="true" useStatementNamespaces="true"/>
+	    <transactionManager type="JDBC">
+				<dataSource type="SIMPLE">
+					<property name="JDBC.Driver" value="com.mysql.jdbc.Driver"/>
+					<property name="JDBC.ConnectionURL" value="jdbc:mysql://127.0.0.1:3306/bookstore"/>
+					<property name="JDBC.Username" value="root"/>
+					<property name="JDBC.Password" value="root"/>
+				</dataSource>
+		</transactionManager>
+		<sqlMap resource="com/bs/dao/User.xml"/>
+		<sqlMap resource="com/bs/dao/DeliveryAddress.xml"/>
+		<sqlMap resource="com/bs/dao/Book.xml"/>
+		<sqlMap resource="com/bs/dao/BookCategory.xml"/>
+		<sqlMap resource="com/bs/dao/ShoppingCart.xml"/>
+		<sqlMap resource="com/bs/dao/BookCollection.xml"/>
+		<sqlMap resource="com/bs/dao/BookSales.xml"/>
+		<sqlMap resource="com/bs/dao/Order.xml"/>
+		<sqlMap resource="com/bs/dao/Appraise.xml"/>
+    </sqlMapConfig>
